@@ -11,6 +11,7 @@ import EmptyState from "./shared/EmptyState";
 import Pagination from "./shared/Pagination";
 import EntityForm from "./forms/EntityForm";
 import TextField from "./forms/fields/TextField";
+import Toast from "./shared/Toast";
 
 function Users() {
   const {
@@ -35,6 +36,11 @@ function Users() {
     userId?: number;
     isMultiple?: boolean;
   }>({ show: false });
+  const [toast, setToast] = useState<{
+    show: boolean;
+    message: string;
+    type: "success" | "error";
+  }>({ show: false, message: "", type: "success" });
 
   if (loading) {
     return (
@@ -116,10 +122,20 @@ function Users() {
         });
         await refetch();
         setEditingUser(null);
+        setToast({
+          show: true,
+          message: "User updated successfully!",
+          type: "success",
+        });
       } else {
         await createUser(formData);
         await refetch();
         setShowCreateForm(false);
+        setToast({
+          show: true,
+          message: "User created successfully!",
+          type: "success",
+        });
       }
       setFormData({ name: "", username: "", email: "" });
       setError(null);
@@ -168,6 +184,13 @@ function Users() {
       }
       await refetch();
       setShowDeleteConfirm({ show: false });
+      setToast({
+        show: true,
+        message: showDeleteConfirm.isMultiple
+          ? `${selectedUsers.size} users deleted successfully!`
+          : "User deleted successfully!",
+        type: "success",
+      });
     } catch (err) {
       setError("Failed to delete user(s)");
       console.error(err);
@@ -435,6 +458,13 @@ function Users() {
         }
         onConfirm={confirmDelete}
         onCancel={() => setShowDeleteConfirm({ show: false })}
+      />
+      
+      <Toast
+        show={toast.show}
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast({ ...toast, show: false })}
       />
     </div>
   );

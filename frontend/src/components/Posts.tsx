@@ -18,6 +18,7 @@ import Pagination from "./shared/Pagination";
 import EntityForm from "./forms/EntityForm";
 import TextField from "./forms/fields/TextField";
 import SelectField from "./forms/fields/SelectField";
+import Toast from "./shared/Toast";
 
 interface UserOption {
   value: number;
@@ -58,6 +59,11 @@ function Posts() {
     userId: 1,
     title: "",
   });
+  const [toast, setToast] = useState<{
+    show: boolean;
+    message: string;
+    type: "success" | "error";
+  }>({ show: false, message: "", type: "success" });
 
   if (loading) {
     return (
@@ -94,13 +100,24 @@ function Posts() {
         });
         await refetchPosts();
         setEditingPost(null);
+        setToast({
+          show: true,
+          message: "Post updated successfully!",
+          type: "success",
+        });
       } else {
         await createPost(formData);
         await refetchPosts();
         setShowCreateForm(false);
+        setToast({
+          show: true,
+          message: "Post created successfully!",
+          type: "success",
+        });
       }
       setFormData({ userId: 1, title: "" });
       setSelectedUserOption(null);
+      setError(null);
     } catch (err) {
       setError("Failed to save post");
       console.error(err);
@@ -141,6 +158,13 @@ function Posts() {
       }
       await refetchPosts();
       setShowDeleteConfirm({ show: false });
+      setToast({
+        show: true,
+        message: showDeleteConfirm.isMultiple
+          ? `${selectedPosts.size} posts deleted successfully!`
+          : "Post deleted successfully!",
+        type: "success",
+      });
     } catch (err) {
       setError("Failed to delete post(s)");
       console.error(err);
@@ -431,6 +455,13 @@ function Posts() {
         }
         onConfirm={confirmDelete}
         onCancel={() => setShowDeleteConfirm({ show: false })}
+      />
+      
+      <Toast
+        show={toast.show}
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast({ ...toast, show: false })}
       />
     </div>
   );
